@@ -127,7 +127,34 @@ powershell -File fetch_assets.ps1 -ListFile mirror_names.txt -OutDir run
 Monster1~260、四个角色、13 个宠物、以及从 `AllEquipment.as`
 解析出的全部装备贴图名。
 
-## 六、存档
+## 六、画质与帧率
+
+帧率由游戏引擎写死为 24（`Config.frameClips = 24`，所有逻辑按帧计数），
+**提高帧率会让游戏加速**，所以不要改 `stage.frameRate`。实测 1x / 1.5x / 2x
+窗口下都稳定在 24 FPS，瓶颈不在渲染。
+
+清晰度问题来自 Windows DPI 缩放：
+
+- 本机是 2560×1440 @150%，Flash Player 默认 DPI 不感知，
+  窗口会被系统整体拉伸 1.5 倍 → 模糊；
+- 解决方式：
+  1. 给 `flashplayer_sa.exe` 写 AppCompat 标记 `~ HIGHDPIAWARE`；
+  2. 用 `bin/winsize.exe` 把窗口设成 1.5x/2x 的**物理像素**尺寸；
+  3. 启动器里 `stage.quality = "best"`。
+
+这样 Flash 会直接按 1410×885 渲染（矢量图重新栅格化），而不是渲染
+940×590 再被系统拉伸，画面明显更锐利。
+
+启动器可用参数（URL query）：
+
+| 参数 | 作用 |
+| --- | --- |
+| `q=low/medium/high/best` | 渲染质量，默认 best |
+| `fps=1` | 显示 FPS 覆盖层 |
+| `smooth=0` | 关闭位图平滑 |
+| `auto=1` | 自动测试流程 |
+
+## 七、存档
 
 存档在：
 
@@ -138,7 +165,7 @@ Monster1~260、四个角色、13 个宠物、以及从 `AllEquipment.as`
 是标准 AMF SharedObject，可以用 FFDec / SolEditor 打开修改
 （金币、等级、装备等）。
 
-## 七、常见问题
+## 八、常见问题
 
 ### 点击关卡后卡在“加载中”
 
@@ -159,7 +186,7 @@ python build_asset_list.py | Where-Object { $_ -match '\.swf$' } |
 powershell -File fetch_assets.ps1 -ListFile mirror_names_clean.txt -OutDir run
 ```
 
-## 八、版权
+## 九、版权
 
 所有游戏代码、美术、音乐版权归 4399 / 造梦西游团队所有。
 本目录仅用于个人学习、研究与存档，请勿传播或商用。

@@ -1,10 +1,14 @@
 package
 {
+   import flash.display.Bitmap;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.Loader;
    import flash.display.LoaderInfo;
    import flash.display.Sprite;
+   import flash.display.StageAlign;
+   import flash.display.StageQuality;
+   import flash.display.StageScaleMode;
    import flash.events.Event;
    import flash.events.IOErrorEvent;
    import flash.events.MouseEvent;
@@ -17,6 +21,7 @@ package
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import flash.utils.getQualifiedClassName;
+   import flash.utils.getTimer;
 
    [SWF(width="940", height="590", frameRate="24", backgroundColor="#000000")]
    public class Launcher extends Sprite
@@ -33,6 +38,10 @@ package
       private var stageDone:Boolean = false;
       private var stageWait:int = 0;
       private var ticks:int = 0;
+
+      private var fpsText:TextField;
+      private var fpsFrames:int = 0;
+      private var fpsLast:int = 0;
 
       public function Launcher()
       {
@@ -74,6 +83,9 @@ package
          }
          try { game.setHold(hold); } catch (err2:Error) { trace("setHold failed: " + err2); }
          addChild(game as DisplayObject);
+
+         applyDisplayOptions();
+
          if (autoMode)
          {
             var t:Timer = new Timer(1200, 1);
@@ -82,9 +94,90 @@ package
          }
       }
 
+      // ---------------- display options ----------------
+
+      private function applyDisplayOptions() : void
+      {
+         var q:String = loaderInfo.parameters["q"];
+         if (q == null) q = "best";
+         stage.quality = q;
+         stage.scaleMode = StageScaleMode.SHOW_ALL;
+         stage.align = StageAlign.TOP_LEFT;
+
+         var smooth:String = loaderInfo.parameters["smooth"];
+         if (smooth == "0")
+         {
+            // 关掉位图平滑，放大时保持像素锐利
+            var st:Timer = new Timer(500, 8);
+            st.addEventListener(TimerEvent.TIMER, function(ev:TimerEvent):void {
+               disableSmoothing(stage);
+            });
+            st.start();
+            disableSmoothing(stage);
+         }
+
+         if (loaderInfo.parameters["fps"] != null)
+         {
+            createFpsMeter();
+         }
+      }
+
+      private function disableSmoothing(o:DisplayObjectContainer) : void
+      {
+         var i:int = 0;
+         while (i < o.numChildren)
+         {
+            var c:DisplayObject = o.getChildAt(i);
+            if (c is Bitmap)
+            {
+               (c as Bitmap).smoothing = false;
+            }
+            if (c is DisplayObjectContainer)
+            {
+               disableSmoothing(c as DisplayObjectContainer);
+            }
+            i++;
+         }
+      }
+
+      private function createFpsMeter() : void
+      {
+         fpsText = new TextField();
+         fpsText.width = 120;
+         fpsText.height = 22;
+         fpsText.x = stage.stageWidth - 126;
+         fpsText.y = 4;
+         fpsText.selectable = false;
+         fpsText.mouseEnabled = false;
+         fpsText.background = true;
+         fpsText.backgroundColor = 0x000000;
+         fpsText.alpha = 0.7;
+         fpsText.textColor = 0x00FF66;
+         fpsText.setTextFormat(new TextFormat("Consolas", 14, 0x00FF66));
+         addChild(fpsText);
+         fpsLast = getTimer();
+         addEventListener(Event.ENTER_FRAME, onFpsFrame);
+      }
+
+      private function onFpsFrame(e:Event) : void
+      {
+         fpsFrames++;
+         var now:int = getTimer();
+         var dt:int = now - fpsLast;
+         if (dt >= 1000)
+         {
+            var fps:Number = fpsFrames * 1000 / dt;
+            fpsText.text = "FPS " + fps.toFixed(1) + "  Q:" + stage.quality;
+            fpsFrames = 0;
+            fpsLast = now;
+         }
+      }
+
+      // ---------------- auto test driver ----------------
+
       private function onAutoStart(e:TimerEvent) : void
       {
-         var t:Timer = new Timer(900, 80);
+         var t:Timer = new Timer(900, 120);
          t.addEventListener(TimerEvent.TIMER, onTick);
          t.start();
       }
@@ -150,10 +243,6 @@ package
                   }
                }
             }
-            if (ticks == 75)
-            {
-               diag("tree:" + dumpTree(stage, 0));
-            }
          }
          catch (err:Error)
          {
@@ -161,26 +250,7 @@ package
          }
       }
 
-      private function dumpTree(o:DisplayObjectContainer, depth:int) : String
-      {
-         if (depth > 6) return "";
-         var s:String = "";
-         var i:int = 0;
-         while (i < o.numChildren)
-         {
-            var c:DisplayObject = o.getChildAt(i);
-            var cn:String = getQualifiedClassName(c);
-            s += "|" + cn;
-            if (c is DisplayObjectContainer)
-            {
-               var sub:String = dumpTree(c as DisplayObjectContainer, depth + 1);
-               if (sub.length > 3000) sub = sub.substring(0, 3000);
-               s += sub;
-            }
-            i++;
-         }
-         return s;
-      }
+      // ---------------- utils ----------------
 
       private function findByName(o:DisplayObjectContainer, className:String) : DisplayObject
       {

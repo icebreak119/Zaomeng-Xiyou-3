@@ -16,6 +16,23 @@
 - 游戏窗口：Flash Player 独立播放器
 - 存档：`%APPDATA%\Macromedia\Flash Player\#SharedObjects\...\127.0.0.1\launcher.swf\zmxy3_offline.sol`
 
+## 画质与帧率
+
+- **帧率**：游戏引擎固定 24 帧，所有逻辑（移动、技能、刷怪）都按帧计时。
+  强行提高 `stage.frameRate` 会让整个游戏加速，所以正确做法是保持 24 帧稳定。
+  实测 1x / 1.5x / 2x 窗口下都是 24.0 FPS。
+- **清晰度**：默认以 1.5 倍分辨率渲染（940×590 → 1410×885），并给
+  Flash Player 打开 `HIGHDPIAWARE`，避免 Windows 150% 缩放导致的整体模糊。
+- **启动参数**：
+
+```bat
+start.bat                 :: 默认 1.5x
+start.bat 1               :: 原始 1x（最小最锐）
+start.bat 2               :: 2x（大屏）
+start.bat 1.5 -Fps        :: 右上角显示帧率
+start.bat 1.5 -Sharp      :: 关闭位图平滑，像素更硬
+```
+
 ## 目录
 
 | 路径 | 说明 |
