@@ -3,7 +3,7 @@
 扫描反编译源码，生成造梦西游3 需要从 CDN 抓取的资源 SWF 清单。
 用法: python build_asset_list.py > mirror_names.txt
 """
-import os, re, sys
+import os, re
 
 SRC = r"D:\4399\zmxy3\src_gamefile\scripts"
 
@@ -36,8 +36,11 @@ if os.path.exists(dec):
     for m in re.finditer(r'if\(urlString == "([^"]+)"\)\s*\{\s*urlString = "([^"]+)"', t):
         names.add(m.group(1))
         names.add(m.group(2))
+    # 3. 直接 push/unshift 的裸资源名（如 stageInfov1620 / stageCommonv1270 / petsUniversalv690）
+    for m in re.finditer(r'\.(?:unshift|push)\("([A-Za-z][A-Za-z0-9_]+)"\)', t):
+        names.add(m.group(1))
 
-# 3. 角色 / 宠物（Config 里的固定映射）
+# 4. 角色 / 宠物（Config 里的固定映射）
 names.update(["Role1v690.swf", "Role2v3550.swf", "Role3v690.swf", "Role4v3550.swf"])
 names.update("%s.swf" % x for x in [
     "nianv1040", "monkeyv690", "horsev680", "tigressv680", "turtlev680",
@@ -45,9 +48,9 @@ names.update("%s.swf" % x for x in [
     "neat", "roomhorse", "yintiger",
 ])
 
-# 4. 装备贴图：ROLE<n>_<showid>.swf / ROLE<n>_EQUIP_<showid>.swf
+# 5. 装备贴图：ROLE<n>_<showid>.swf / ROLE<n>_EQUIP_<showid>.swf
 eq = os.path.join(SRC, "my", "AllEquipment.as")
-role_map = {"悟空": "ROLE1", "唐僧": "ROLE2", "八戒": "ROLE3", "沙僧": "ROLE4"}
+role_map = {"\u609f\u7a7a": "ROLE1", "\u5510\u50e7": "ROLE2", "\u516b\u6212": "ROLE3", "\u6c99\u50e7": "ROLE4"}
 cloth_types = {"zbfj", "zbfb"}
 weapon_types = {"zbwq", "zbwp"}
 if os.path.exists(eq):
@@ -66,18 +69,28 @@ if os.path.exists(eq):
                 names.add("ROLE4_SHOVEL_%s.swf" % sid)
                 names.add("ROLE4_ARROW_%s.swf" % sid)
 
-# 5. 保险：怪物编号区间
+# 6. 裸装备贴图（id=0 是默认外观）
+for prefix in ("ROLE1", "ROLE2", "ROLE3", "ROLE4"):
+    names.add("%s_0.swf" % prefix)
+    names.add("%s_EQUIP_0.swf" % prefix)
+names.add("ROLE4_SHOVEL_0.swf")
+names.add("ROLE4_ARROW_0.swf")
+
+# 7. 保险：怪物编号区间
 for i in range(1, 261):
     names.add("Monster%d.swf" % i)
 
-# 6. 裸资源名（Decrypt 数组里的数字 / 名字）统一补 .swf
+# 8. 保险：关卡包编号（未在映射表里的会直接用 N.swf）
+for i in range(1, 81):
+    names.add("%d.swf" % i)
+
+# 9. 裸资源名统一补 .swf
 extra = set()
 for n in list(names):
     if not n.endswith(".swf"):
         extra.add(n + ".swf")
 names |= extra
 
-# 过滤明显不是资源的
 bad_prefix = ("http", "www.", "E:")
 names = {n for n in names if not n.startswith(bad_prefix)}
 

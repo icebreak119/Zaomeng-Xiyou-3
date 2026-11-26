@@ -138,7 +138,28 @@ Monster1~260、四个角色、13 个宠物、以及从 `AllEquipment.as`
 是标准 AMF SharedObject，可以用 FFDec / SolEditor 打开修改
 （金币、等级、装备等）。
 
-## 七、版权
+## 七、常见问题
+
+### 点击关卡后卡在“加载中”
+
+几乎都是缺少该关卡的资源包。打开 `run/server.log`，看最后一次 `404`：
+
+- `stageInfov1620.swf` / `stageCommonv1270.swf` / `petsUniversalv690.swf`
+- `N.swf`（第 N 关的关卡包）
+- `ROLE1_0.swf` / `ROLE1_EQUIP_0.swf`（角色默认外观）
+
+把缺失文件下载到 `run/` 即可。注意：游戏的加载器在素材 404、重试 3 次后
+会**直接停住**，不会跳过，所以必须补齐文件。
+
+重新扫描完整清单并补抓：
+
+```powershell
+python build_asset_list.py | Where-Object { $_ -match '\.swf$' } |
+  Sort-Object -Unique | Set-Content mirror_names_clean.txt
+powershell -File fetch_assets.ps1 -ListFile mirror_names_clean.txt -OutDir run
+```
+
+## 八、版权
 
 所有游戏代码、美术、音乐版权归 4399 / 造梦西游团队所有。
 本目录仅用于个人学习、研究与存档，请勿传播或商用。

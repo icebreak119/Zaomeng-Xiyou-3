@@ -30,6 +30,8 @@ package
       private var simpleDone:Boolean = false;
       private var startDone:Boolean = false;
       private var saveDone:Boolean = false;
+      private var stageDone:Boolean = false;
+      private var stageWait:int = 0;
       private var ticks:int = 0;
 
       public function Launcher()
@@ -132,6 +134,20 @@ package
                   si["btn_1"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));
                   saveDone = true;
                   diag("tick" + ticks + " saveSlot");
+               }
+            }
+            if (saveDone && !stageDone)
+            {
+               stageWait++;
+               if (stageWait > 5)
+               {
+                  var sp:DisplayObject = findByName(stage, "export::SelectPLace");
+                  if (sp != null && sp["s1_1"] != null)
+                  {
+                     sp["s1_1"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+                     stageDone = true;
+                     diag("tick" + ticks + " clickStage s1_1");
+                  }
                }
             }
             if (ticks == 75)
