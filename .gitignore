@@ -1,0 +1,24 @@
+# 临时 / 构建中间产物
+verify*/
+pcode/
+pcodehex/
+patch/
+patch2/
+import_work/
+import_orig/
+import_test*/
+decompiled/
+*.log
+server.out
+_failed.txt
+build_err.txt
+quick_check.py
+_fix.py
+
+# 本地工具（体积大、可自行下载）
+tools/
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store
