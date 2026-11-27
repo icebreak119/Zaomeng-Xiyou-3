@@ -2,6 +2,7 @@
     [string]$Scale = "1.5",   # 1 / 1.5 / 2
     [switch]$Fps,             # 显示帧率
     [switch]$Sharp,           # 关闭位图平滑（像素更锐利）
+    [switch]$Pillar,          # 全屏时保持比例（两侧留黑边），默认拉伸铺满
     [switch]$Auto             # 自动测试流程
 )
 
@@ -45,6 +46,7 @@ Start-Sleep -Milliseconds 800
 $url = "http://127.0.0.1:8765/launcher.swf?q=best"
 if ($Fps)   { $url += "&fps=1" }
 if ($Sharp) { $url += "&smooth=0" }
+if ($Pillar) { $url += "&fit=pillar" }
 if ($Auto)  { $url += "&auto=1" }
 
 $p = Start-Process -FilePath $player -ArgumentList $url -PassThru

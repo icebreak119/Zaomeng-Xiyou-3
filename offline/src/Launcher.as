@@ -7,6 +7,7 @@ package
    import flash.display.LoaderInfo;
    import flash.display.Sprite;
    import flash.display.StageAlign;
+   import flash.display.StageDisplayState;
    import flash.display.StageQuality;
    import flash.display.StageScaleMode;
    import flash.events.Event;
@@ -108,8 +109,32 @@ package
          var q:String = loaderInfo.parameters["q"];
          if (q == null) q = "best";
          stage.quality = q;
+         stage.align = "";
          stage.scaleMode = StageScaleMode.SHOW_ALL;
-         stage.align = StageAlign.TOP_LEFT;
+         stage.addEventListener(Event.RESIZE, onStageResize);
+
+         var fit:String = loaderInfo.parameters["fit"];
+         if (fit == "stretch")
+         {
+            stage.scaleMode = StageScaleMode.EXACT_FIT;
+         }
+         else if (fit == "pillar")
+         {
+            stage.scaleMode = StageScaleMode.SHOW_ALL;
+         }
+         else if (fit == "crop")
+         {
+            stage.scaleMode = StageScaleMode.NO_BORDER;
+         }
+
+         if (loaderInfo.parameters["full"] != null)
+         {
+            var ft:Timer = new Timer(2500, 1);
+            ft.addEventListener(TimerEvent.TIMER, function(ev:TimerEvent):void {
+               try { stage.displayState = StageDisplayState.FULL_SCREEN; } catch (e:Error) { }
+            });
+            ft.start();
+         }
 
          var smooth:String = loaderInfo.parameters["smooth"];
          if (smooth == "0")
@@ -127,6 +152,40 @@ package
          {
             createFpsMeter();
          }
+      }
+
+      /**
+       * 全屏时用 EXACT_FIT 铺满，避免 align=TOP_LEFT 造成的右侧单边黑边；
+       * 窗口模式保持等比。
+       */
+      private var probing:Boolean = false;
+
+      private function onStageResize(e:Event) : void
+      {
+         var fit:String = loaderInfo.parameters["fit"];
+         if (fit != null) return;
+         if (probing) return;
+         probing = true;
+         try
+         {
+            // 用 NO_SCALE 探一次真实窗口尺寸（SHOW_ALL 下 stageWidth 始终是 940）
+            stage.scaleMode = StageScaleMode.NO_SCALE;
+            var w:Number = stage.stageWidth;
+            var h:Number = stage.stageHeight;
+            var ar:Number = h > 0 ? w / h : 1.593;
+            var base:Number = 940 / 590;
+            if (Math.abs(ar - base) > 0.1)
+            {
+               // 全屏 / 宽比例窗口：拉伸铺满，避免右侧单边黑边
+               stage.scaleMode = StageScaleMode.EXACT_FIT;
+            }
+            else
+            {
+               stage.scaleMode = StageScaleMode.SHOW_ALL;
+            }
+         }
+         catch (err:Error) { }
+         probing = false;
       }
 
       private function disableSmoothing(o:DisplayObjectContainer) : void
