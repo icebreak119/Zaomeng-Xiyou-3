@@ -186,7 +186,29 @@ python build_asset_list.py | Where-Object { $_ -match '\.swf$' } |
 powershell -File fetch_assets.ps1 -ListFile mirror_names_clean.txt -OutDir run
 ```
 
-## 九、版权
+## 九、地图工具箱（mod 实现）
+
+代码在 `offline/src/Toolbox.as`，由 `Launcher` 注入，不修改游戏主 SWF。
+
+原理：
+
+- 通过 `getDefinitionByName("config.Config")` 拿到游戏单例；
+- 从 `gc.allEquip` 的公开数组
+  （`otherEquipment` / `wpEquipment` / `sutraEquipment` / `sellEquipment`）
+  收集全部道具（按 `getFillName()` 去重），共 300+ 项；
+- 选中后用 `new MyEquipObj(...)` 按模板参数**克隆**一个新对象，
+  再用 `seteatt/setedef/setehp/...` 写入 DIY 数值；
+- 按 `type` 放进 `player.zblist` / `szlist` / `plist`，
+  强化石类走 `gc.putQhsInBackPack()`；
+- 最后调 `gc.memory.setStorage(gc.luanqibazaojiami.saveId)` 立即存档。
+
+按钮只在 `export::SelectPLace`（世界地图）存在时显示，每 500ms 检测一次。
+面板是 Launcher 的子对象，永远盖在游戏画面之上，鼠标事件不会穿透到游戏。
+
+扩展方向：要加“删除道具 / 一键满级 / 改宠物”等功能，都在 `Toolbox.as` 里加方法即可，
+重新用 mxmlc 编译 `Launcher.as` 就会带上。
+
+## 十、版权
 
 所有游戏代码、美术、音乐版权归 4399 / 造梦西游团队所有。
 本目录仅用于个人学习、研究与存档，请勿传播或商用。

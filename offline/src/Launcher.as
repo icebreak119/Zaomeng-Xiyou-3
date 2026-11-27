@@ -29,6 +29,7 @@ package
       private var loader:Loader;
       private var hold:LocalHold;
       private var game:Object;
+      private var toolbox:Toolbox;
       private var autoMode:Boolean = false;
 
       private var newGameDone:Boolean = false;
@@ -83,6 +84,12 @@ package
          }
          try { game.setHold(hold); } catch (err2:Error) { trace("setHold failed: " + err2); }
          addChild(game as DisplayObject);
+
+         if (config != null)
+         {
+            toolbox = new Toolbox(config);
+            addChild(toolbox);
+         }
 
          applyDisplayOptions();
 
@@ -235,7 +242,17 @@ package
                if (stageWait > 5)
                {
                   var sp:DisplayObject = findByName(stage, "export::SelectPLace");
-                  if (sp != null && sp["s1_1"] != null)
+                  if (loaderInfo.parameters["tool"] != null)
+                  {
+                     if (toolbox != null)
+                     {
+                        toolbox.open();
+                        if (loaderInfo.parameters["tooltest"] != null) toolbox.autoTestAdd();
+                     }
+                     stageDone = true;
+                     diag("tick" + ticks + " openToolbox");
+                  }
+                  else if (sp != null && sp["s1_1"] != null)
                   {
                      sp["s1_1"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));
                      stageDone = true;
