@@ -112,6 +112,32 @@ package
          {
             btn.visible = true;
          }
+         if (onMap)
+         {
+            hideAdButtons();
+         }
+      }
+
+      /**
+       * 隐藏会跳转 4399 网页的广告按钮：
+       * ldbtn = 联动送礼, sjwBtn = 游戏大全/手机玩造梦
+       */
+      private function hideAdButtons() : void
+      {
+         var mm:DisplayObject = findByName(stage, "export::MapMenu");
+         if (mm == null) return;
+         try
+         {
+            var a:DisplayObject = mm["ldbtn"] as DisplayObject;
+            if (a != null) { a.visible = false; a.mouseEnabled = false; }
+         }
+         catch (e1:Error) { }
+         try
+         {
+            var b:DisplayObject = mm["sjwBtn"] as DisplayObject;
+            if (b != null) { b.visible = false; b.mouseEnabled = false; }
+         }
+         catch (e2:Error) { }
       }
 
       // ---------------- button ----------------

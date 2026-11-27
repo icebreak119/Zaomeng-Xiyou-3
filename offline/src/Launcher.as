@@ -242,7 +242,12 @@ package
                if (stageWait > 5)
                {
                   var sp:DisplayObject = findByName(stage, "export::SelectPLace");
-                  if (loaderInfo.parameters["tool"] != null)
+                  if (loaderInfo.parameters["stay"] != null)
+                  {
+                     stageDone = true;
+                     diag("tick" + ticks + " stayOnMap");
+                  }
+                  else if (loaderInfo.parameters["tool"] != null)
                   {
                      if (toolbox != null)
                      {
